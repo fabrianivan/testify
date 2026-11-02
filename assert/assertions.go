@@ -1709,8 +1709,14 @@ func ErrorContains(t TestingT, theError error, contains string, msgAndArgs ...in
 
 // matchRegexp return true if a specified regexp matches a string.
 func matchRegexp(rx interface{}, str interface{}) bool {
+	if rx == nil {
+		return false
+	}
 	var r *regexp.Regexp
 	if rr, ok := rx.(*regexp.Regexp); ok {
+		if rr == nil {
+			return false
+		}
 		r = rr
 	} else {
 		r = regexp.MustCompile(fmt.Sprint(rx))
@@ -2009,6 +2015,13 @@ func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick t
 		h.Helper()
 	}
 
+	if condition == nil {
+		return Fail(t, "Condition must not be nil", msgAndArgs...)
+	}
+	if tick <= 0 {
+		return Fail(t, "Tick must be greater than 0", msgAndArgs...)
+	}
+
 	ch := make(chan bool, 1)
 	checkCond := func() { ch <- condition() }
 
@@ -2104,6 +2117,13 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 		h.Helper()
 	}
 
+	if condition == nil {
+		return Fail(t, "Condition must not be nil", msgAndArgs...)
+	}
+	if tick <= 0 {
+		return Fail(t, "Tick must be greater than 0", msgAndArgs...)
+	}
+
 	var lastFinishedTickErrs []error
 	ch := make(chan *CollectT, 1)
 
@@ -2154,6 +2174,13 @@ func EventuallyWithT(t TestingT, condition func(collect *CollectT), waitFor time
 func Never(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
+	}
+
+	if condition == nil {
+		return Fail(t, "Condition must not be nil", msgAndArgs...)
+	}
+	if tick <= 0 {
+		return Fail(t, "Tick must be greater than 0", msgAndArgs...)
 	}
 
 	ch := make(chan bool, 1)
